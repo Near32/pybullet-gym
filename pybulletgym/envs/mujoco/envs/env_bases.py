@@ -43,7 +43,14 @@ class BaseBulletEnv(gym.Env):
 		self.robot.np_random = self.np_random # use the same np_randomizer for robot as for env
 		return [seed]
 
-	def _reset(self):
+	def reset(self, **kwargs):
+    reset_output = self._reset(**kwargs)
+    if not isinstance(reset_output, tuple):
+      info = {}
+      reset_output = tuple(reset_output, info)
+    return tuple(reset_output)  
+    
+  def _reset(self, **kwargs):
 		if self.physicsClientId < 0:
 			self.ownsPhysicsClient = True
 

@@ -3,7 +3,7 @@ import numpy as np
 import traceback
 import pybulletgym  # required for the Bullet envs to be initialized
 
-envs = [spec.id for spec in gym.envs.registry.all() if spec.id.find('Bullet') >= 0]
+envs = [spec.id for spec in gym.envs.registry.values() if spec.id.find('Bullet') >= 0]
 bugged_envs = []
 for env_name in envs:
     try:

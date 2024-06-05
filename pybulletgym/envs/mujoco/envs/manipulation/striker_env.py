@@ -68,7 +68,7 @@ class StrikerBulletEnv(BaseBulletEnv):
         self.rewards = [float(self.potential - potential_old), float(electricity_cost), float(stuck_joint_cost),
                         3 * reward_dist, 0.1 * reward_ctrl, 0.5 * reward_near]
         self.HUD(state, a, False)
-        return state, sum(self.rewards), False, {}
+        return state, sum(self.rewards), False, False, {}
 
     def calc_potential(self):
         return -100 * np.linalg.norm(self.to_target_vec)

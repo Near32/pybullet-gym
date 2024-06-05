@@ -17,7 +17,14 @@ class WalkerBaseMuJoCoEnv(BaseBulletEnv):
         self.stadium_scene = StadiumScene(bullet_client, gravity=9.8, timestep=0.0165/4, frame_skip=4)
         return self.stadium_scene
 
-    def reset(self):
+    def reset(self, **kwargs):
+        reset_output = self._reset(**kwargs)
+        if not isinstance(reset_output, tuple):
+            info = {}
+            reset_output = tuple(reset_output, info)
+        return tuple(reset_output)  
+    
+    def _reset(self, **kwargs):
         if self.stateId >= 0:
             # print("restoreState self.stateId:",self.stateId)
             self._p.restoreState(self.stateId)
@@ -109,7 +116,7 @@ class WalkerBaseMuJoCoEnv(BaseBulletEnv):
         self.HUD(state, a, done)
         self.reward += sum(self.rewards)
 
-        return state, sum(self.rewards), bool(done), {}
+        return state, sum(self.rewards), bool(done), False, {}
 
     def camera_adjust(self):
         x, y, z = self.robot.body_xyz

@@ -12,7 +12,7 @@ class InvertedDoublePendulumMuJoCoEnv(BaseBulletEnv):
     def create_single_player_scene(self, bullet_client):
         return SingleRobotEmptyScene(bullet_client, gravity=9.8, timestep=0.0165, frame_skip=1)
 
-    def reset(self):
+    def _reset(self, **kwargs):
         if self.stateId >= 0:
             self._p.restoreState(self.stateId)
         r = BaseBulletEnv._reset(self)
@@ -34,7 +34,7 @@ class InvertedDoublePendulumMuJoCoEnv(BaseBulletEnv):
         done = pos_y + 0.3 <= 1
         self.rewards = [float(alive_bonus), float(-dist_penalty), float(-vel_penalty)]
         self.HUD(state, a, done)
-        return state, sum(self.rewards), done, {}
+        return state, sum(self.rewards), done, False, {}
 
     def camera_adjust(self):
         self.camera.move_and_look_at(0, 1.2, 1.2, 0, 0, 0.5)

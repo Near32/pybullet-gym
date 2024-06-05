@@ -11,8 +11,8 @@ class InvertedDoublePendulumBulletEnv(BaseBulletEnv):
 
     def create_single_player_scene(self, bullet_client):
         return SingleRobotEmptyScene(bullet_client, gravity=9.8, timestep=0.0165, frame_skip=1)
-
-    def reset(self):
+    
+    def _reset(self, **kwargs):
         if self.stateId >= 0:
             self._p.restoreState(self.stateId)
         r = BaseBulletEnv._reset(self)
@@ -20,7 +20,7 @@ class InvertedDoublePendulumBulletEnv(BaseBulletEnv):
             self.stateId = self._p.saveState()
         return r
 
-    def step(self, a):
+    def _step(self, a):
         self.robot.apply_action(a)
         self.scene.global_step()
         state = self.robot.calc_state()  # sets self.pos_x self.pos_y

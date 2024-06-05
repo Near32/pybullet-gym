@@ -15,7 +15,7 @@ class StrikerBulletEnv(BaseBulletEnv):
     def create_single_player_scene(self, bullet_client):
         return SingleRobotEmptyScene(bullet_client, gravity=9.81, timestep=0.0020, frame_skip=5)
 
-    def step(self, a):
+    def _step(self, a):
         self.robot.apply_action(a)
         self.scene.global_step()
 

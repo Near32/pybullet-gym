@@ -60,7 +60,7 @@ class ThrowerBulletEnv(BaseBulletEnv):
         self.rewards = [float(self.potential - potential_old), float(electricity_cost), float(stuck_joint_cost),
                         reward_dist, 0.002 * reward_ctrl]
         self.HUD(state, a, False)
-        return state, sum(self.rewards), False, {}
+        return state, sum(self.rewards), False, False, {}
 
     def camera_adjust(self):
         x, y, z = self.robot.fingertip.pose().xyz()

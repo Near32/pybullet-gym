@@ -12,7 +12,7 @@ class ReacherBulletEnv(BaseBulletEnv):
     def create_single_player_scene(self, bullet_client):
         return SingleRobotEmptyScene(bullet_client, gravity=0.0, timestep=0.0165, frame_skip=1)
 
-    def step(self, a):
+    def _step(self, a):
         assert (not self.scene.multiplayer)
         self.robot.apply_action(a)
         self.scene.global_step()

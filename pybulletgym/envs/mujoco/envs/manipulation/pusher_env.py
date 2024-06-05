@@ -45,7 +45,7 @@ class PusherBulletEnv(BaseBulletEnv):
 
         self.rewards = [float(self.potential - potential_old), float(electricity_cost), float(stuck_joint_cost)]
         self.HUD(state, a, False)
-        return state, sum(self.rewards), False, {}
+        return state, sum(self.rewards), False, False, {}
 
     def calc_potential(self):
         return -100 * np.linalg.norm(self.to_target_vec)

@@ -29,7 +29,7 @@ class ReacherBulletEnv(BaseBulletEnv):
         stuck_joint_cost = -0.1 if np.abs(np.abs(self.robot.gamma) - 1) < 0.01 else 0.0
         self.rewards = [float(self.potential - potential_old), float(electricity_cost), float(stuck_joint_cost)]
         self.HUD(state, a, False)
-        return state, sum(self.rewards), False, {}
+        return state, sum(self.rewards), False, False, {}
 
     def camera_adjust(self):
         x, y, z = self.robot.fingertip.pose().xyz()
