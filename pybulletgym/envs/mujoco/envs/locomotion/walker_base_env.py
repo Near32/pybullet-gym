@@ -21,7 +21,7 @@ class WalkerBaseMuJoCoEnv(BaseBulletEnv):
         reset_output = self._reset(**kwargs)
         if not isinstance(reset_output, tuple):
             info = {}
-            reset_output = tuple(reset_output, info)
+            reset_output = [reset_output, info]
         return tuple(reset_output)  
     
     def _reset(self, **kwargs):
@@ -56,7 +56,7 @@ class WalkerBaseMuJoCoEnv(BaseBulletEnv):
     foot_ground_object_names = set(["floor"])  # to distinguish ground and other objects
     joints_at_limit_cost = -0.1	 # discourage stuck joints
 
-    def step(self, a):
+    def _step(self, a):
         if not self.scene.multiplayer:  # if multiplayer, action first applied to all robots, then global step() called, then _step() for all robots with the same actions
             self.robot.apply_action(a)
             self.scene.global_step()

@@ -14,8 +14,8 @@ class BaseBulletEnv(gym.Env):
   """
 
   metadata = {
-    'render.modes': ['human', 'rgb_array'],
-    'video.frames_per_second': 60
+    'render_modes': ['human', 'rgb_array'],
+    'render_fps': 60,
     }
 
   def __init__(self, robot, render=False):
