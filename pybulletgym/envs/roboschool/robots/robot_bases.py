@@ -2,6 +2,12 @@ import pybullet
 import gym, gym.spaces, gym.utils
 import numpy as np
 import os, inspect
+
+from pybulletgym.envs.roboschool.robots.utils import (
+  extract_initial_velocities_and_masses_MJCF,
+  calculate_impulses,
+)
+
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 os.sys.path.insert(0, parentdir)
@@ -28,6 +34,7 @@ class XmlBasedRobot:
 
     self.robot_name = robot_name
     self.self_collision = self_collision
+    self.initial_velocities = {}
 
   def addToScene(self, bullet_client, bodies):
     self._p = bullet_client
@@ -90,6 +97,37 @@ class XmlBasedRobot:
 
     return parts, joints, ordered_joints, self.robot_body
 
+  def robot_specific_dynamic_reset(self, physicsClient):
+    dt = physicsClient.getPhysicsEngineParameters()['fixedTimeStep']
+    initial_impulses = calculate_impulses(
+      initial_velocities=self.initial_velocities, 
+      link_masses=self.link_masses, 
+      dt=dt,
+    )
+    
+    # Apply the impulses to the corresponding links
+    for link_name, impulse in initial_impulses.items():
+      part = self.parts[link_name]
+      robot_id = part.bodyIndex 
+      link_id = part.bodyPartIndex
+      link_state = physicsClient.getLinkState(robot_id, link_id)
+      if link_state is not None:
+        print(f"Applying initial impulse to linl {link_name} : {impulse}") 
+        physicsClient.applyExternalForce(
+          objectUniqueId=robot_id, 
+          linkIndex=link_id, 
+          forceObj=impulse['linear'], 
+          posObj=[0, 0, 0], 
+          flags=physicsClient.LINK_FRAME,
+        )
+        physicsClient.applyExternalTorque(
+          objectUniqueId=robot_id, 
+          linkIndex=link_id, 
+          torqueObj=impulse['angular'], 
+          flags=physicsClient.LINK_FRAME,
+        )
+    #self._robot_specific_reset(physicsClient)
+  
   def robot_specific_reset(self, physicsClient):
     pass
 
@@ -106,7 +144,9 @@ class MJCFBasedRobot(XmlBasedRobot):
     XmlBasedRobot.__init__(self, robot_name, action_dim, obs_dim, self_collision)
     self.model_xml = model_xml
     self.doneLoading = 0
-
+    full_path = os.path.join(os.path.dirname(__file__), "..", "..", "assets", "mjcf", self.model_xml)
+    self.initial_velocities, self.link_masses = extract_initial_velocities_and_masses_MJCF(full_path)
+    
   def reset(self, bullet_client):
     full_path = os.path.join(os.path.dirname(__file__), "..", "..", "assets", "mjcf", self.model_xml)
 
@@ -121,6 +161,7 @@ class MJCFBasedRobot(XmlBasedRobot):
       else:
         self.objects = self._p.loadMJCF(full_path)
         self.parts, self.jdict, self.ordered_joints, self.robot_body = self.addToScene(self._p, self.objects)
+    self.robot_specific_dynamic_reset(self._p)
     self.robot_specific_reset(self._p)
 
     s = self.calc_state()  # optimization: calc_state() can calculate something in self.* for calc_potential() to use
