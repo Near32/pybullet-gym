@@ -168,8 +168,6 @@ class Camera:
   def __init__(self):
     pass
 
-  def move_and_look_at(self, i, j, k, x, y, z):
+  def move_and_look_at(self, i, j, k, x, y, z, distance=10, yaw=10, pitch=-20):
     lookat = [x, y, z]
-    distance = 10
-    yaw = 10
-    self._p.resetDebugVisualizerCamera(distance, yaw, -20, lookat)
+    self._p.resetDebugVisualizerCamera(distance, yaw, pitch, lookat)
