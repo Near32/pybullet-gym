@@ -4,8 +4,8 @@ from pybulletgym.envs.roboschool.scenes.scene_bases import SingleRobotEmptyScene
 
 
 class InvertedDoublePendulumBulletEnv(BaseBulletEnv):
-    def __init__(self, **kwargs):
-        self.robot = InvertedDoublePendulum()
+    def __init__(self, model_xml="inverted_double_pendulum.xml", **kwargs):
+        self.robot = InvertedDoublePendulum(model_xml=model_xml)
         BaseBulletEnv.__init__(self, self.robot, **kwargs)
         self.stateId = -1
 

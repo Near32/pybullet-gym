@@ -3,8 +3,8 @@ import numpy as np
 
 
 class InvertedDoublePendulum(MJCFBasedRobot):
-    def __init__(self):
-        MJCFBasedRobot.__init__(self,  'inverted_double_pendulum.xml', 'cart', action_dim=1, obs_dim=9)
+    def __init__(self, model_xml="inverted_double_pendulum.xml"):
+        MJCFBasedRobot.__init__(self,  model_xml, 'cart', action_dim=1, obs_dim=9)
 
     def robot_specific_reset(self, bullet_client):
         self._p = bullet_client

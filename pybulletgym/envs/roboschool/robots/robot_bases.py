@@ -144,11 +144,19 @@ class MJCFBasedRobot(XmlBasedRobot):
     XmlBasedRobot.__init__(self, robot_name, action_dim, obs_dim, self_collision)
     self.model_xml = model_xml
     self.doneLoading = 0
-    full_path = os.path.join(os.path.dirname(__file__), "..", "..", "assets", "mjcf", self.model_xml)
-    self.initial_velocities, self.link_masses = extract_initial_velocities_and_masses_MJCF(full_path)
+    if os.path.isabs(self.model_xml):
+      full_path = self.model_xml
+    else:
+      full_path = os.path.join(os.path.dirname(__file__), "..", "..", "assets", "mjcf", self.model_xml)
+    self.boundary_conditions = extract_initial_velocities_and_masses_MJCF(full_path)
+    self.initial_velocities = self.boundary_conditions['initial_velocities']
+    self.link_masses = self.boundary_conditions['link_masses']
     
   def reset(self, bullet_client):
-    full_path = os.path.join(os.path.dirname(__file__), "..", "..", "assets", "mjcf", self.model_xml)
+    if os.path.isabs(self.model_xml):
+      full_path = self.model_xml
+    else:
+      full_path = os.path.join(os.path.dirname(__file__), "..", "..", "assets", "mjcf", self.model_xml)
 
     self._p = bullet_client
     # print("Created bullet_client with id=", self._p._client)
@@ -190,7 +198,10 @@ class URDFBasedRobot(XmlBasedRobot):
     self._p = bullet_client
     self.ordered_joints = []
 
-    full_path = os.path.join(os.path.dirname(__file__), "..", "..", "assets", "robots", self.model_urdf)
+    if os.path.isabs(self.model_xml):
+      full_path = self.model_xml
+    else:
+      full_path = os.path.join(os.path.dirname(__file__), "..", "..", "assets", "robots", self.model_urdf)
     print(full_path)
 
     if self.self_collision:

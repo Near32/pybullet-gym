@@ -5,8 +5,8 @@ import numpy as np
 
 
 class InvertedPendulumBulletEnv(BaseBulletEnv):
-    def __init__(self, **kwargs):
-        self.robot = InvertedPendulum()
+    def __init__(self, model_xml="inverted_pendulum.xml", **kwargs):
+        self.robot = InvertedPendulum(model_xml=model_xml)
         BaseBulletEnv.__init__(self, self.robot, **kwargs)
         self.stateId = -1
 
@@ -43,7 +43,7 @@ class InvertedPendulumBulletEnv(BaseBulletEnv):
 
 
 class InvertedPendulumSwingupBulletEnv(InvertedPendulumBulletEnv):
-    def __init__(self, **kwargs):
-        self.robot = InvertedPendulumSwingup()
+    def __init__(self, model_xml="inverted_pendulum.xml", **kwargs):
+        self.robot = InvertedPendulumSwingup(model_xml=model_xml)
         BaseBulletEnv.__init__(self, self.robot, **kwargs)
         self.stateId = -1
