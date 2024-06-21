@@ -1,4 +1,11 @@
+import gym
 from gym.envs.registration import register
+
+for env_k in list(gym.envs.registration.registry.keys()):
+    if 'Bullet' in env_k:
+        del gym.envs.registration.registry[env_k]
+    if 'MuJoCo' in env_k:
+        del gym.envs.registration.registry[env_k]
 
 # roboschool envs
 ## pendula
