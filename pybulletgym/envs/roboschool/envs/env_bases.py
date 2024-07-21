@@ -70,6 +70,7 @@ class BaseBulletEnv(gym.Env):
     return loglist
 
   def reset(self, **kwargs):
+    if 'seed' in kwargs.keys(): self.seed(kwargs['seed']) 
     self.nbr_time_steps = 0
     reset_output = self._reset(**kwargs)
     self._generate_name_swap()
