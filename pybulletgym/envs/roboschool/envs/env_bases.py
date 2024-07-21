@@ -19,7 +19,16 @@ class BaseBulletEnv(gym.Env):
     'render_fps': 60,
     }
 
-  def __init__(self, robot, render=False, logs_with_joints=False, obfuscate_logs=False, **kwargs):
+  def __init__(
+    self, 
+    robot, 
+    render=False, 
+    logs_with_joints=False, 
+    timestep=0.0166,
+    frame_skip=1,
+    obfuscate_logs=False, 
+    **kwargs,
+  ):
     self.scene = None
     self.physicsClientId = -1
     self.ownsPhysicsClient = 0
@@ -35,6 +44,8 @@ class BaseBulletEnv(gym.Env):
     
     self.logs_with_joints = logs_with_joints
     self.obfuscate_logs = obfuscate_logs
+    self.timestep = timestep
+    self.frame_skip = frame_skip
     self.nbr_time_steps = 0
 
     self.action_space = robot.action_space
@@ -92,7 +103,11 @@ class BaseBulletEnv(gym.Env):
       self._p.configureDebugVisualizer(pybullet.COV_ENABLE_GUI,0)
 
     if self.scene is None:
-      self.scene = self.create_single_player_scene(self._p)
+      self.scene = self.create_single_player_scene(
+        self._p,
+        timestep=self.timestep,
+        frame_skip=self.frame_skip,
+    )
     if not self.scene.multiplayer and self.ownsPhysicsClient:
       self.scene.episode_restart(self._p)
 
