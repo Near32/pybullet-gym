@@ -18,39 +18,31 @@ def log_contacts(p, NS):
         contact_position = contact[5]
         contact_normal = contact[7]
         contact_force = contact[9]
-        contact_logs.append(f"Contact between body {NS[bodyA_name]}'s link {NS[linkA_name]} and body {NS[bodyB_name]}'s link {NS[linkB_name]}")
-        contact_logs.append(f"Contact position: {contact_position}")
-        contact_logs.append(f"Contact normal: {contact_normal}")
-        contact_logs.append(f"Contact force: {contact_force}")
+        contact_logs.append(f"Contact between {NS[bodyA_name]}'s link {NS[linkA_name]} and {NS[bodyB_name]}'s link {NS[linkB_name]}")
+        contact_logs.append(f"position: {contact_position}")
+        contact_logs.append(f"normal: {contact_normal}")
+        contact_logs.append(f"force: {contact_force}")
     return contact_logs
 
 # Function to log kinematic states
 def log_kinematics(p, parts, NS):
     printoptions = np.get_printoptions()
-    np.set_printoptions(formatter={'float_kind': lambda x: "%.3f" % x})
+    np.set_printoptions(formatter={'float_kind': lambda x: "%.2f" % x})
     kinematics_logs = []
-    '''
-    num_bodies = p.getNumBodies()
-    for i in range(num_bodies):
-        body_id = i
-        body_info = p.getBodyInfo(body_id)
-        body_name = body_info[1].decode('utf-8')
-        pos, orn = p.getBasePositionAndOrientation(body_id)
-        linear_vel, angular_vel = p.getBaseVelocity(body_id)
-        kinematics_logs.append(
-          f"Body {NS[body_name]}:\n Position: {pos}, Orientation: {orn}\n"
-          + f"Linear Velocity: {linear_vel}, Angular Velocity: {angular_vel}\n")
-    '''
     for part_name, part in parts.items():
         body_id = part.bodyIndex
         body_info = p.getBodyInfo(body_id)
         body_name = body_info[1].decode('utf-8')
         pos = part.current_position()
+        pos_str = ' '.join([f"{x:.2f}" for x in pos])
         orn = part.current_orientation()
+        orn_str = ' '.join([f"{x:.2f}" for x in orn])
         linear_vel, angular_vel = part.get_linear_velocity(), part.get_angular_velocity()
+        lvel_str = ' '.join([f"{x:.2f}" for x in linear_vel])
+        avel_str = ' '.join([f"{x:.2f}" for x in angular_vel])
         kinematics_logs.append(
-          f"Body {NS[body_name]}'s part {NS[part_name]}:\nPosition: {pos}, Orientation: {orn}\n"
-          + f"Linear Velocity: {linear_vel}, Angular Velocity: {angular_vel}\n")
+          f"{NS[body_name]}'s part {NS[part_name]}:\nPosition: {pos_str}, Orientation: {orn_str}\n"
+          + f"Velocities: linear: {lvel_str}, angular: {avel_str}\n")
     np.set_printoptions(**printoptions) 
     return kinematics_logs
 
