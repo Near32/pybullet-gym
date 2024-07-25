@@ -112,7 +112,7 @@ class XmlBasedRobot:
       link_id = part.bodyPartIndex
       link_state = physicsClient.getLinkState(robot_id, link_id)
       if link_state is not None:
-        print(f"Applying initial impulse to linl {link_name} : {impulse}") 
+        print(f"Applying initial impulse to link {link_name} : {impulse}") 
         physicsClient.applyExternalForce(
           objectUniqueId=robot_id, 
           linkIndex=link_id, 
