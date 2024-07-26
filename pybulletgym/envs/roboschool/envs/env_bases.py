@@ -27,6 +27,7 @@ class BaseBulletEnv(gym.Env):
     timestep=0.0166,
     frame_skip=1,
     obfuscate_logs=False, 
+    minimal_logs=False,
     **kwargs,
   ):
     self.scene = None
@@ -44,6 +45,7 @@ class BaseBulletEnv(gym.Env):
     
     self.logs_with_joints = logs_with_joints
     self.obfuscate_logs = obfuscate_logs
+    self.minimal_logs = minimal_logs 
     self.timestep = timestep
     self.frame_skip = frame_skip
     self.nbr_time_steps = 0
@@ -70,8 +72,13 @@ class BaseBulletEnv(gym.Env):
   def _generate_logs(self):
     loglist = [[f"Time: {self.nbr_time_steps * self._p.getPhysicsEngineParameters()['fixedTimeStep']:.3f}"]]
     # Function to log contact events
+    parts = self.robot.parts
+    list_infos = ['position', 'orientation', 'linear_velocity', 'angular_velocity']
+    if self.minimal_logs:
+      parts = {'pole': parts['pole']}
+      list_infos = ['angular_velocity']
     loglist.append(log_contacts(self._p, NS=self.nameSwap))
-    loglist.append(log_kinematics(self._p, parts=self.robot.parts, NS=self.nameSwap))
+    loglist.append(log_kinematics(self._p, parts=parts, NS=self.nameSwap, list_infos=list_infos))
     if not self.logs_with_joints: return loglist 
     bodyIndices = []
     for part in self.robot.parts.values(): 

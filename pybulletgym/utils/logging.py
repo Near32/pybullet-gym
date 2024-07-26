@@ -25,7 +25,7 @@ def log_contacts(p, NS):
     return contact_logs
 
 # Function to log kinematic states
-def log_kinematics(p, parts, NS):
+def log_kinematics(p, parts, NS, list_infos=['position', 'orientation', 'linear_velocity', 'angular_velocity']):
     printoptions = np.get_printoptions()
     np.set_printoptions(formatter={'float_kind': lambda x: "%.2f" % x})
     kinematics_logs = []
@@ -33,16 +33,24 @@ def log_kinematics(p, parts, NS):
         body_id = part.bodyIndex
         body_info = p.getBodyInfo(body_id)
         body_name = body_info[1].decode('utf-8')
-        pos = part.current_position()
-        pos_str = ' '.join([f"{x:.2f}" for x in pos])
-        orn = part.current_orientation()
-        orn_str = ' '.join([f"{x:.2f}" for x in orn])
-        linear_vel, angular_vel = part.get_linear_velocity(), part.get_angular_velocity()
-        lvel_str = ' '.join([f"{x:.2f}" for x in linear_vel])
-        avel_str = ' '.join([f"{x:.2f}" for x in angular_vel])
-        kinematics_logs.append(
-          f"{NS[body_name]}'s part {NS[part_name]}:\nPosition: {pos_str}, Orientation: {orn_str}\n"
-          + f"Velocities: linear: {lvel_str}, angular: {avel_str}\n")
+        klog = f"{NS[body_name]}'s part {NS[part_name]}:\n"
+        if 'position' in list_infos:
+          pos = part.current_position()
+          pos_str = ' '.join([f"{x:.2f}" for x in pos])
+          klog += f"Position: {pos_str}\n"
+        if 'orientation' in list_infos:
+          orn = part.current_orientation()
+          orn_str = ' '.join([f"{x:.2f}" for x in orn])
+          klog += f"Orientation: {orn_str}\n"
+        if 'linear_velocity' in list_infos:        
+          linear_vel = part.get_linear_velocity()
+          lvel_str = ' '.join([f"{x:.2f}" for x in linear_vel])
+          klog += f"Linear Velocities: {lvel_str}\n"
+        if 'angular_velocity' in list_infos:
+          angular_vel = part.get_angular_velocity()
+          avel_str = ' '.join([f"{x:.2f}" for x in angular_vel])
+          klog += f"AngularVelocities: {avel_str}\n"        
+          kinematics_logs.append(klog)
     np.set_printoptions(**printoptions) 
     return kinematics_logs
 
