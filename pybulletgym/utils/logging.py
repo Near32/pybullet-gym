@@ -49,7 +49,7 @@ def log_kinematics(p, parts, NS, list_infos=['position', 'orientation', 'linear_
         if 'angular_velocity' in list_infos:
           angular_vel = part.get_angular_velocity()
           avel_str = ' '.join([f"{x:.2f}" for x in angular_vel])
-          klog += f"AngularVelocities: {avel_str}\n"        
+          klog += f"Angular Velocities: {avel_str}\n"        
           kinematics_logs.append(klog)
     np.set_printoptions(**printoptions) 
     return kinematics_logs
