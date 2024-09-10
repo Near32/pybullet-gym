@@ -100,6 +100,8 @@ class XmlBasedRobot:
   def robot_specific_dynamic_reset(self, physicsClient):
     dt = physicsClient.getPhysicsEngineParameters()['fixedTimeStep']
     initial_impulses = calculate_impulses(
+      physicsClient=physicsClient,
+      parts=self.parts,
       initial_velocities=self.initial_velocities, 
       link_masses=self.link_masses, 
       dt=dt,
@@ -112,7 +114,8 @@ class XmlBasedRobot:
       link_id = part.bodyPartIndex
       link_state = physicsClient.getLinkState(robot_id, link_id)
       if link_state is not None:
-        print(f"Applying initial impulse to link {link_name} : {impulse}") 
+        mass = physicsClient.getDynamicsInfo(robot_id, link_id)[0]
+        print(f"Applying initial impulse to link {link_name} of mass {mass} : {impulse}") 
         physicsClient.applyExternalForce(
           objectUniqueId=robot_id, 
           linkIndex=link_id, 

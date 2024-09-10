@@ -26,16 +26,16 @@ class InvertedPendulum(MJCFBasedRobot):
 
     def calc_state(self):
         self.theta, self.theta_dot = self.j1.current_position()
-        x, vx = self.slider.current_position()
-        assert( np.isfinite(x) )
+        self.x, self.x_dot = self.slider.current_position()
+        assert( np.isfinite(self.x) )
 
-        if not np.isfinite(x):
+        if not np.isfinite(self.x):
             print("x is inf")
-            x = 0
+            self.x = 0
 
-        if not np.isfinite(vx):
-            print("vx is inf")
-            vx = 0
+        if not np.isfinite(self.x_dot):
+            print("x_dot is inf")
+            self.x_dot = 0
 
         if not np.isfinite(self.theta):
             print("theta is inf")
@@ -46,7 +46,7 @@ class InvertedPendulum(MJCFBasedRobot):
             self.theta_dot = 0
 
         return np.array([
-            x, vx,
+            self.x, self.x_dot,
             np.cos(self.theta), np.sin(self.theta), self.theta_dot
         ])
 
