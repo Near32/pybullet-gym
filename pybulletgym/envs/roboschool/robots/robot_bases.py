@@ -37,6 +37,12 @@ class XmlBasedRobot:
     self.initial_velocities = {}
 
   def addToScene(self, bullet_client, bodies):
+    '''
+    Add this robot's body parts for bookkeeping.
+    :param bullet_client: the bullet physics client
+    :param bodies: a list of body ids
+    :return: a tuple (parts, joints, ordered_joints, robot_body)
+    '''
     self._p = bullet_client
 
     if self.parts is not None:
@@ -63,7 +69,7 @@ class XmlBasedRobot:
         part_name, robot_name = self._p.getBodyInfo(bodies[i])
         self.robot_name = robot_name.decode("utf8")
         part_name = part_name.decode("utf8")
-        parts[part_name] = BodyPart(self._p, part_name, bodies, i, -1)
+        parts[part_name] = BodyPart(self._p, part_name, bodies, bodies[i], -1)
       for j in range(self._p.getNumJoints(bodies[i])):
         self._p.setJointMotorControl2(bodies[i], j, pybullet.POSITION_CONTROL, positionGain=0.1, velocityGain=0.1, force=0)
         jointInfo = self._p.getJointInfo(bodies[i], j)
@@ -76,16 +82,18 @@ class XmlBasedRobot:
         if dump: print("ROBOT PART '%s'" % part_name)
         if dump: print("ROBOT JOINT '%s'" % joint_name)  # limits = %+0.2f..%+0.2f effort=%0.3f speed=%0.3f" % ((joint_name,) + j.limits()) )
 
-        parts[part_name] = BodyPart(self._p, part_name, bodies, i, j)
+        parts[part_name] = BodyPart(self._p, part_name, bodies, bodyIndex=bodies[i], bodyPartIndex=j)
 
         if part_name == self.robot_name:
           self.robot_body = parts[part_name]
 
         if i == 0 and j == 0 and self.robot_body is None:  # if nothing else works, we take this as robot_body
-          parts[self.robot_name] = BodyPart(self._p, self.robot_name, bodies, 0, -1)
+          parts[self.robot_name] = BodyPart(self._p, self.robot_name, bodies, bodyIndex=0, bodyPartIndex=-1)
           self.robot_body = parts[self.robot_name]
 
         if joint_name[:6] == "ignore":
+          # This joint is only here for regularising an orientation or position:
+          # Therefore it is disabled and we will ignore the related part in subsequenT PROCESSING;
           Joint(self._p, joint_name, bodies, i, j).disable_motor()
           continue
 
@@ -285,7 +293,8 @@ class PoseHelper:  # dummy class to comply to original interface
 
 class BodyPart:
   def __init__(self, bullet_client, body_name, bodies, bodyIndex, bodyPartIndex):
-    self.bodies = bodies
+    self.name = body_name
+    #self.bodies = bodies
     self._p = bullet_client
     self.bodyIndex = bodyIndex
     self.bodyPartIndex = bodyPartIndex
@@ -301,13 +310,13 @@ class BodyPart:
     return np.array([x, y, z, a, b, c, d])
 
   def get_pose(self):
-    return self.state_fields_of_pose_of(self.bodies[self.bodyIndex], self.bodyPartIndex)
+    return self.state_fields_of_pose_of(self.bodyIndex, self.bodyPartIndex)
 
   def speed(self):
     if self.bodyPartIndex == -1:
-      (vx, vy, vz), _ = self._p.getBaseVelocity(self.bodies[self.bodyIndex])
+      (vx, vy, vz), _ = self._p.getBaseVelocity(self.bodyIndex)
     else:
-      (x, y, z), (a, b, c, d), _,_,_,_, (vx, vy, vz), (vr, vp, vy) = self._p.getLinkState(self.bodies[self.bodyIndex], self.bodyPartIndex, computeLinkVelocity=1)
+      (x, y, z), (a, b, c, d), _,_,_,_, (vx, vy, vz), (vr, vp, vy) = self._p.getLinkState(self.bodyIndex, self.bodyPartIndex, computeLinkVelocity=1)
     return np.array([vx, vy, vz])
 
   def current_position(self):
@@ -323,43 +332,43 @@ class BodyPart:
     return self.current_orientation()
 
   def get_velocity(self):
-    return self._p.getBaseVelocity(self.bodies[self.bodyIndex])
+    return self._p.getBaseVelocity(self.bodyIndex)
 
   def get_linear_velocity(self):
     if self.bodyPartIndex == -1:
-      (vx, vy, vz), _ = self._p.getBaseVelocity(self.bodies[self.bodyIndex])
+      (vx, vy, vz), _ = self._p.getBaseVelocity(self.bodyIndex)
     else:
-      (x, y, z), (a, b, c, d), _,_,_,_, (vx, vy, vz), (vr, vp, vy) = self._p.getLinkState(self.bodies[self.bodyIndex], self.bodyPartIndex, computeLinkVelocity=1)
+      (x, y, z), (a, b, c, d), _,_,_,_, (vx, vy, vz), (vr, vp, vy) = self._p.getLinkState(self.bodyIndex, self.bodyPartIndex, computeLinkVelocity=1)
     return np.array([vx, vy, vz])
   
   def get_angular_velocity(self):
     if self.bodyPartIndex == -1:
-      (vx, vy, vz), (vr, vp, vy) = self._p.getBaseVelocity(self.bodies[self.bodyIndex])
+      (vx, vy, vz), (vr, vp, vy) = self._p.getBaseVelocity(self.bodyIndex)
     else:
-      (x, y, z), (a, b, c, d), _,_,_,_, (vx, vy, vz), (vr, vp, vy) = self._p.getLinkState(self.bodies[self.bodyIndex], self.bodyPartIndex, computeLinkVelocity=1)
+      (x, y, z), (a, b, c, d), _,_,_,_, (vx, vy, vz), (vr, vp, vy) = self._p.getLinkState(self.bodyIndex, self.bodyPartIndex, computeLinkVelocity=1)
     return np.array([vr, vp, vy])
 
   def reset_position(self, position):
-    self._p.resetBasePositionAndOrientation(self.bodies[self.bodyIndex], position, self.get_orientation())
+    self._p.resetBasePositionAndOrientation(self.bodyIndex, position, self.get_orientation())
 
   def reset_orientation(self, orientation):
-    self._p.resetBasePositionAndOrientation(self.bodies[self.bodyIndex], self.get_position(), orientation)
+    self._p.resetBasePositionAndOrientation(self.bodyIndex, self.get_position(), orientation)
 
   def reset_velocity(self, linearVelocity=None, angularVelocity=None):
     if linearVelocity is None:
       linearVelocity = [0, 0, 0]
     if angularVelocity is None:
       angularVelocity = [0, 0, 0]
-    self._p.resetBaseVelocity(self.bodies[self.bodyIndex], linearVelocity, angularVelocity)
+    self._p.resetBaseVelocity(self.bodyIndex, linearVelocity, angularVelocity)
 
   def reset_pose(self, position, orientation):
-    self._p.resetBasePositionAndOrientation(self.bodies[self.bodyIndex], position, orientation)
+    self._p.resetBasePositionAndOrientation(self.bodyIndex, position, orientation)
 
   def pose(self):
     return self.bp_pose
 
   def contact_list(self):
-    return self._p.getContactPoints(self.bodies[self.bodyIndex], -1, self.bodyPartIndex, -1)
+    return self._p.getContactPoints(self.bodyIndex, -1, self.bodyPartIndex, -1)
 
 
 class Joint:

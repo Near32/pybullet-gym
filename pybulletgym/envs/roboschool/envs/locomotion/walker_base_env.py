@@ -13,8 +13,13 @@ class WalkerBaseBulletEnv(BaseBulletEnv):
         self.walk_target_y = 0
         self.stateId = -1
 
-    def create_single_player_scene(self, bullet_client):
-        self.stadium_scene = StadiumScene(bullet_client, gravity=9.8, timestep=0.0165/4, frame_skip=4)
+    def create_single_player_scene(self, bullet_client, gravity=9.8, timestep=0.0165/4, frame_skip=4):
+        self.stadium_scene = StadiumScene(
+            bullet_client, 
+            gravity=gravity, 
+            timestep=timestep, 
+            frame_skip=frame_skip,
+        )
         return self.stadium_scene
 
     def _reset(self, **kwargs):

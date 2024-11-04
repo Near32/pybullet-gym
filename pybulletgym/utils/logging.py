@@ -1,38 +1,66 @@
+from typing import List, Dict, Tuple
 import pybullet as pb
 import numpy as np
 
 
-def log_contacts(p, NS):
+def log_contacts(p, parts: Dict[str,object], NS: Dict[str,str]) -> List[str]:
+    '''
+    Log contacts in a string
+
+    # TODO : update nameswap approach when name cannot be find.
+
+    :param p: pybullet instance
+    :param NS: Dict[str,str] namespace in order to deal with obfuscated names.
+    :return: contact_logs: List[str]
+    '''
     contact_logs = []
     contact_points = p.getContactPoints()
     for contact in contact_points:
-        import ipdb; ipdb.set_trace()
         bodyA = contact[1]
         bodyA_name = p.getBodyInfo(bodyA)[1].decode('utf-8') if bodyA >= 0 else 'World' 
         bodyB = contact[2]
         bodyB_name = p.getBodyInfo(bodyB)[1].decode('utf-8') if bodyB >= 0 else 'World' 
         linkA = contact[3]
-        linkA_name = p.getJointInfo(linkA)[1].decode('utf-8')
+        linkA_name = [part for part in parts.values() if part.bodyPartIndex==linkA]
+        if len(linkA_name): linkA_name = linkA_name[0].name
+        else: linkA_name = 'base'
+        #if linkA == -1: linkA_name= 'base'
+        #else: linkA_name = p.getJointInfo(bodyUniqueId=bodyA, jointIndex=linkA)[1].decode('utf-8')
         linkB = contact[4]
-        linkB_name = p.getJointInfo(linkB)[1].decode('utf-8')
+        linkB_name = [part for part in parts.values() if part.bodyPartIndex==linkB]
+        if len(linkB_name): linkB_name = linkB_name[0].name
+        else: linkB_name = 'base'
+        #if linkB == -1: linkB_name= 'base' 
+        #else: linkB_name = p.getJointInfo(bodyUniqueId=bodyB, jointIndex=linkB)[1].decode('utf-8')
         contact_position = contact[5]
+        contact_position_str = ' '.join([f"{x:.2f}" for x in contact_position])
         contact_normal = contact[7]
+        contact_normal_str = ' '.join([f"{x:.2f}" for x in contact_normal])
         contact_force = contact[9]
+        contact_force_str = f"{contact_force:.2f}"
+        #TODO: update below:
+        if bodyA_name not in NS:  NS[bodyA_name] = bodyA_name
+        if bodyB_name not in NS:  NS[bodyB_name] = bodyB_name
+        if linkA_name not in NS:  NS[linkA_name] = linkA_name
+        if linkB_name not in NS:  NS[linkB_name] = linkB_name
         contact_logs.append(f"Contact between {NS[bodyA_name]}'s link {NS[linkA_name]} and {NS[bodyB_name]}'s link {NS[linkB_name]}")
-        contact_logs.append(f"position: {contact_position}")
-        contact_logs.append(f"normal: {contact_normal}")
-        contact_logs.append(f"force: {contact_force}")
+        contact_logs.append(f"position: {contact_position_str}")
+        contact_logs.append(f"normal: {contact_normal_str}")
+        contact_logs.append(f"force: {contact_force_str}\n")
     return contact_logs
 
 # Function to log kinematic states
 def log_kinematics(p, parts, NS, list_infos=['position', 'orientation', 'linear_velocity', 'angular_velocity']):
-    printoptions = np.get_printoptions()
-    np.set_printoptions(formatter={'float_kind': lambda x: "%.2f" % x})
     kinematics_logs = []
     for part_name, part in parts.items():
         body_id = part.bodyIndex
+        link_id = part.bodyPartIndex
         body_info = p.getBodyInfo(body_id)
         body_name = body_info[1].decode('utf-8')
+        #TODO: update below:
+        if body_name not in NS:  NS[body_name] = body_name
+        if part_name not in NS:  NS[part_name] = part_name
+        #DEBUG: klog = f"{NS[body_name]}({body_id})'s part {NS[part_name]}({link_id}):\n"
         klog = f"{NS[body_name]}'s part {NS[part_name]}:\n"
         if 'position' in list_infos:
           pos = part.current_position()
@@ -51,7 +79,6 @@ def log_kinematics(p, parts, NS, list_infos=['position', 'orientation', 'linear_
           avel_str = ' '.join([f"{x:.2f}" for x in angular_vel])
           klog += f"Angular Velocities: {avel_str}\n"        
           kinematics_logs.append(klog)
-    np.set_printoptions(**printoptions) 
     return kinematics_logs
 
 # Function to log joint states

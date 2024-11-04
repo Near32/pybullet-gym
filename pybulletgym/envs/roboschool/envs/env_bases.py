@@ -70,14 +70,19 @@ class BaseBulletEnv(gym.Env):
         self.nameSwap[part_name] = f'RB{partIdx}'
      
   def _generate_logs(self):
+    printoptions = np.get_printoptions()
+    np.set_printoptions(formatter={'float_kind': lambda x: "%.2f" % x})
     loglist = [[f"Time: {self.nbr_time_steps * self._p.getPhysicsEngineParameters()['fixedTimeStep']:.3f}"]]
     # Function to log contact events
-    parts = self.robot.parts
+    # Ignore parts that have been added by the system for bookkeeping around joint configuration:
+    parts = {k:v for k,v in self.robot.parts.items() if 'link' not in k}
+    #parts = self.robot.parts
     list_infos = ['position', 'orientation', 'linear_velocity', 'angular_velocity']
     if self.minimal_logs:
+      # TODO: update to be more general, only for cartpole now:
       parts = {'pole': parts['pole']}
       list_infos = ['angular_velocity']
-    loglist.append(log_contacts(self._p, NS=self.nameSwap))
+    loglist.append(log_contacts(self._p, parts=parts, NS=self.nameSwap))
     loglist.append(log_kinematics(self._p, parts=parts, NS=self.nameSwap, list_infos=list_infos))
     if not self.logs_with_joints: return loglist 
     bodyIndices = []
@@ -85,6 +90,7 @@ class BaseBulletEnv(gym.Env):
       if part.bodyIndex in bodyIndices: continue 
       bodyIndices.append(part.bodyIndex) 
       loglist.append(log_joint_states(self._p, robot_id=part.bodyIndex))
+    np.set_printoptions(**printoptions) 
     return loglist
 
   def reset(self, **kwargs):
